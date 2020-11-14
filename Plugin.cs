@@ -18,7 +18,7 @@ namespace XIVLauncherSpotify
             private Configuration config;
             private PluginUI ui;
             private static SpotifyWebAPI _spotify;
-        private static String oauth = "BQDcAsClsOtcVfZljXceuSvn2uOP8Ze32GuCsFEyXFh2dP6NeZxmp2dqtBFMDfpJdz6GoHxBvArTaAqCb1H-8Z2Orb456GCq-kVDixg_H1DlAcmePxFaiVTfOxspQKhVCRdjWDbD1upKAAJtnZUAOWFBjeHWU2So4lbKOAO33o-K";
+            private static String oauth = "";
 
 
         public string Name => "Connect with Spotify";
@@ -69,8 +69,7 @@ namespace XIVLauncherSpotify
             String uri = Uri.EscapeUriString(builder.ToString());
             Process.Start(uri);
         }
-    }
-
+    
 
 
 
