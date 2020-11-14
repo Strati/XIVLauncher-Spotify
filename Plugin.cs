@@ -6,6 +6,8 @@ using SpotifyAPI.Web.Auth;
 using System.Threading.Tasks;
 using SpotifyAPI.Web.Models;
 using SpotifyAPI.Web.Enums;
+using System.Text;
+using System.Diagnostics;
 
 namespace XIVLauncherSpotify
 {
@@ -36,8 +38,12 @@ namespace XIVLauncherSpotify
 
         static async void SpotifyAuth(string[] args)
         {
+            String ClientId = "2993fe290e1744158bdec14aa8016ebd";
+            String RedirectUri = "http://localhost:4002";
+            String scope = "user-read-playback-state user-modify-playback-state user-read-currently-playing";
+
             ImplicitGrantAuth auth = new ImplicitGrantAuth(
-              "2993fe290e1744158bdec14aa8016ebd",
+              ClientId,
               "http://localhost:4002",
               "http://localhost:4002",
               Scope.UserReadPlaybackState | Scope.UserModifyPlaybackState | Scope.UserReadCurrentlyPlaying
@@ -53,8 +59,17 @@ namespace XIVLauncherSpotify
                 // Do requests with API client
             };
             auth.Start(); // Starts an internal HTTP Server
-            auth.OpenBrowser();
+
+            StringBuilder builder = new StringBuilder("https://accounts.spotify.com/authorize/?");
+            builder.Append("client_id=" + ClientId);
+            builder.Append($"&response_type=code");
+            builder.Append("&redirect_uri=" + RedirectUri);
+            builder.Append("&scope=" + scope);
+            builder.Append("&show_dialog=false");
+            String uri = Uri.EscapeUriString(builder.ToString());
+            Process.Start(uri);
         }
+    }
 
 
 
