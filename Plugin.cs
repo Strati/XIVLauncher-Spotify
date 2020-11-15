@@ -17,7 +17,6 @@ namespace XIVLauncherSpotify
             private Configuration config;
             private PluginUI ui;
             private static SpotifyWebAPI _spotify;
-            private static String oauth = "";
 
 
         public string Name => "Connect with Spotify";
@@ -35,9 +34,22 @@ namespace XIVLauncherSpotify
                 this.commandManager = new PluginCommandManager<Plugin>(this, this.pluginInterface);
             }
 
+        public void IsAuthed()
+        {
+            try
+            {
+                FullAlbum album = _spotify.GetAlbum("3UcKmJyD3aWgwZ6OlQemJQ");
+            } catch (Exception)
+            {
+                var chat = this.pluginInterface.Framework.Gui.Chat;
+                chat.Print($"Popping web browser to authenticate...");
+                SpotifyAuth();
+            }
+        }
 
         static void SpotifyAuth()
         {
+
             String ClientId = "2993fe290e1744158bdec14aa8016ebd";            
 
             ImplicitGrantAuth auth = new ImplicitGrantAuth(
@@ -66,7 +78,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Display currently playing song.")]
         public void GetTrackname(string command, string args)
         {
-            SpotifyAuth();
+            IsAuthed();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             PlaybackContext context = _spotify.GetPlayingTrack();
             if (context.Item != null)
@@ -89,7 +101,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Set volume.")]
         public void SetVolume(string command, string args)
         {
-            SpotifyAuth();
+            IsAuthed();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             if (!int.TryParse(args, out var volume)) return;
             if (volume > 100 || volume < 0) return;
@@ -101,7 +113,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Go to previous track.")]
         public void SeekPrevious(string command, string args)
         {
-            SpotifyAuth();
+            IsAuthed();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             ErrorResponse error = _spotify.SkipPlaybackToPrevious();
             chat.Print($"Seeking to previous track.");
@@ -111,7 +123,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Go to previous track.")]
         public void SeekNext(string command, string args)
         {
-            SpotifyAuth();
+            IsAuthed();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             ErrorResponse error = _spotify.SkipPlaybackToNext();
             chat.Print($"Seeking to next track.");
@@ -121,7 +133,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Restart current track.")]
         public void SeekRestart(string command, string args)
         {
-            SpotifyAuth();
+            IsAuthed();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             ErrorResponse error = _spotify.SeekPlayback(0);
             chat.Print($"Restarting current track.");
@@ -131,7 +143,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Restart current track.")]
         public void TogglePlayback(string command, string args)
         {
-            SpotifyAuth();
+            IsAuthed();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             PlaybackContext context = _spotify.GetPlayback();
             if (context.IsPlaying == true)
