@@ -3,11 +3,10 @@ using Dalamud.Plugin;
 using XIVLauncherSpotify.Attributes;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
-using System.Threading.Tasks;
 using SpotifyAPI.Web.Models;
 using SpotifyAPI.Web.Enums;
-using System.Text;
 using System.Diagnostics;
+using System.Net;
 
 namespace XIVLauncherSpotify
 {
@@ -36,11 +35,10 @@ namespace XIVLauncherSpotify
                 this.commandManager = new PluginCommandManager<Plugin>(this, this.pluginInterface);
             }
 
-        static async void SpotifyAuth(string[] args)
+
+        static void SpotifyAuth()
         {
-            String ClientId = "2993fe290e1744158bdec14aa8016ebd";
-            String RedirectUri = "http://localhost:4002";
-            String scope = "user-read-playback-state user-modify-playback-state user-read-currently-playing";
+            String ClientId = "2993fe290e1744158bdec14aa8016ebd";            
 
             ImplicitGrantAuth auth = new ImplicitGrantAuth(
               ClientId,
@@ -50,24 +48,15 @@ namespace XIVLauncherSpotify
             );
             auth.AuthReceived += async (sender, payload) =>
             {
-                auth.Stop(); // `sender` is also the auth instance
+                auth.Stop();
                 _spotify = new SpotifyWebAPI()
                 {
                     TokenType = payload.TokenType,
                     AccessToken = payload.AccessToken
                 };
-                // Do requests with API client
             };
-            auth.Start(); // Starts an internal HTTP Server
-
-            StringBuilder builder = new StringBuilder("https://accounts.spotify.com/authorize/?");
-            builder.Append("client_id=" + ClientId);
-            builder.Append($"&response_type=code");
-            builder.Append("&redirect_uri=" + RedirectUri);
-            builder.Append("&scope=" + scope);
-            builder.Append("&show_dialog=false");
-            String uri = Uri.EscapeUriString(builder.ToString());
-            Process.Start(uri);
+            auth.Start();
+            Process.Start(auth.GetUri());
         }
     
 
@@ -77,6 +66,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Display currently playing song.")]
         public void GetTrackname(string command, string args)
         {
+            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             PlaybackContext context = _spotify.GetPlayingTrack();
             if (context.Item != null)
@@ -99,11 +89,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Set volume.")]
         public void SetVolume(string command, string args)
         {
-            _spotify = new SpotifyWebAPI()
-            {
-                AccessToken = oauth,
-                TokenType = "Bearer"
-            };
+            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             if (!int.TryParse(args, out var volume)) return;
             if (volume > 100 || volume < 0) return;
@@ -115,11 +101,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Go to previous track.")]
         public void SeekPrevious(string command, string args)
         {
-            _spotify = new SpotifyWebAPI()
-            {
-                AccessToken = oauth,
-                TokenType = "Bearer"
-            };
+            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             ErrorResponse error = _spotify.SkipPlaybackToPrevious();
             chat.Print($"Seeking to previous track.");
@@ -129,11 +111,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Go to previous track.")]
         public void SeekNext(string command, string args)
         {
-            _spotify = new SpotifyWebAPI()
-            {
-                AccessToken = oauth,
-                TokenType = "Bearer"
-            };
+            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             ErrorResponse error = _spotify.SkipPlaybackToNext();
             chat.Print($"Seeking to next track.");
@@ -143,11 +121,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Restart current track.")]
         public void SeekRestart(string command, string args)
         {
-            _spotify = new SpotifyWebAPI()
-            {
-                AccessToken = oauth,
-                TokenType = "Bearer"
-            };
+            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             ErrorResponse error = _spotify.SeekPlayback(0);
             chat.Print($"Restarting current track.");
@@ -157,11 +131,7 @@ namespace XIVLauncherSpotify
         [HelpMessage("Restart current track.")]
         public void TogglePlayback(string command, string args)
         {
-            _spotify = new SpotifyWebAPI()
-            {
-                AccessToken = oauth,
-                TokenType = "Bearer"
-            };
+            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             PlaybackContext context = _spotify.GetPlayback();
             if (context.IsPlaying == true)
