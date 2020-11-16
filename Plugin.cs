@@ -60,7 +60,7 @@ namespace XIVLauncherSpotify
         }
 
 
-        private async void SpotifyAuth()
+        private void SpotifyAuth()
         {
             if (IsAuthed()) {
                 return;
@@ -74,7 +74,7 @@ namespace XIVLauncherSpotify
               "http://localhost:4002",
               Scope.UserReadPlaybackState | Scope.UserModifyPlaybackState | Scope.UserReadCurrentlyPlaying
             );
-            auth.AuthReceived += async (sender, payload) =>
+            auth.AuthReceived += (sender, payload) =>
             {
                 auth.Stop();
                 _spotify = new SpotifyWebAPI()
@@ -94,9 +94,54 @@ namespace XIVLauncherSpotify
 
         [Command("/xlsnp")]
         [HelpMessage("Display currently playing song.")]
-        public async Task GetTrackname(string command, string args)
+        public void GetTrackname(string command, string args)
         {
             SpotifyAuth();
+            getPlaying();
+        }
+
+        [Command("/xlsv")]
+        [HelpMessage("Set volume.")]
+        public void SetVolume(string command, string args)
+        {
+            SpotifyAuth();
+            Volume(args);
+        }
+
+        [Command("/xlsprevious")]
+        [HelpMessage("Go to previous track.")]
+        public void SeekPrevious(string command, string args)
+        {
+            SpotifyAuth();
+            goPrev();
+        }
+
+        [Command("/xlsnext")]
+        [HelpMessage("Go to next track.")]
+        public void SeekNext(string command, string args)
+        {
+            SpotifyAuth();
+            goNext();
+        }
+
+        [Command("/xlsrestart")]
+        [HelpMessage("Restart current track.")]
+        public void SeekRestart(string command, string args)
+        {
+            SpotifyAuth();
+            goZero();
+        }
+
+        [Command("/xlstoggleplayback")]
+        [HelpMessage("Toggle play/pause.")]
+        public void TogglePlayback(string command, string args)
+        {
+            SpotifyAuth();
+            PlayPause();
+        }
+
+        private async Task getPlaying()
+        {
             var chat = this.pluginInterface.Framework.Gui.Chat;
             PlaybackContext context = await _spotify.GetPlayingTrackAsync();
             if (context.Item != null)
@@ -109,17 +154,15 @@ namespace XIVLauncherSpotify
                     else artists += context.Item.Artists[i].Name + " - ";
                 }
                 chat.Print($"Now Playing: {artists} - {songname}");
-            } else
+            }
+            else
             {
                 chat.Print($"Not playing");
             }
         }
 
-        [Command("/xlsv")]
-        [HelpMessage("Set volume.")]
-        public async Task SetVolume(string command, string args)
+        private async Task Volume(string args)
         {
-            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             if (!int.TryParse(args, out var volume)) return;
             if (volume > 100 || volume < 0) return;
@@ -127,53 +170,46 @@ namespace XIVLauncherSpotify
             chat.Print($"Spotify volume set to {volume}");
         }
 
-        [Command("/xlsprevious")]
-        [HelpMessage("Go to previous track.")]
-        public async Task SeekPrevious(string command, string args)
+        private async Task goPrev()
         {
-            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             ErrorResponse error = await _spotify.SkipPlaybackToPreviousAsync();
             chat.Print($"Seeking to previous track.");
         }
 
-        [Command("/xlsnext")]
-        [HelpMessage("Go to previous track.")]
-        public async Task SeekNext(string command, string args)
+        private async Task goNext()
         {
-            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             ErrorResponse error = await _spotify.SkipPlaybackToNextAsync();
             chat.Print($"Seeking to next track.");
         }
 
-        [Command("/xlsrestart")]
-        [HelpMessage("Restart current track.")]
-        public async Task SeekRestart(string command, string args)
+        private async Task goZero()
         {
-            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             ErrorResponse error = await _spotify.SeekPlaybackAsync(0);
             chat.Print($"Restarting current track.");
         }
 
-        [Command("/xlstoggleplayback")]
-        [HelpMessage("Toggle play/pause.")]
-        public async Task TogglePlayback(string command, string args)
+        private async Task PlayPause()
         {
-            SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             PlaybackContext context = await _spotify.GetPlaybackAsync();
             if (context.IsPlaying == true)
             {
                 ErrorResponse error = await _spotify.PausePlaybackAsync();
                 chat.Print($"Playback paused.");
-            } else
+            }
+            else
             {
                 ErrorResponse error = await _spotify.ResumePlaybackAsync(offset: "");
                 chat.Print($"Playback resumed.");
             }
         }
+
+
+
+
 
 
         #region IDisposable Support
