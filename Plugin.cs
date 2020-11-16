@@ -8,6 +8,7 @@ using SpotifyAPI.Web.Enums;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace XIVLauncherSpotify
 {
@@ -60,7 +61,7 @@ namespace XIVLauncherSpotify
         }
 
 
-        private void SpotifyAuth()
+        private async void SpotifyAuth()
         {
             if (IsAuthed()) {
                 return;
@@ -74,7 +75,7 @@ namespace XIVLauncherSpotify
               "http://localhost:4002",
               Scope.UserReadPlaybackState | Scope.UserModifyPlaybackState | Scope.UserReadCurrentlyPlaying
             );
-            auth.AuthReceived += (sender, payload) =>
+            auth.AuthReceived += async (sender, payload) =>
             {
                 auth.Stop();
                 _spotify = new SpotifyWebAPI()
@@ -82,13 +83,13 @@ namespace XIVLauncherSpotify
                     TokenType = payload.TokenType,
                     AccessToken = payload.AccessToken
                 };
+                config.token = _spotify.AccessToken;
+                config.Save();
             };
             auth.Start();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             chat.Print($"Popping web browser to authenticate...");
             Process.Start(auth.GetUri());
-            config.token = _spotify;
-            config.Save();
         }
     
 

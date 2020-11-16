@@ -9,7 +9,7 @@ namespace XIVLauncherSpotify
     {
 
         //public string token { get; set; }
-        public SpotifyWebAPI token;
+        public string token;
         public int Version { get; set; }
 
         // Add any other properties or methods here.
