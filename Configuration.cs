@@ -1,11 +1,15 @@
 ﻿using Dalamud.Configuration;
 using Dalamud.Plugin;
 using Newtonsoft.Json;
+using SpotifyAPI.Web;
 
 namespace XIVLauncherSpotify
 {
     public class Configuration : IPluginConfiguration
     {
+
+        //public string token { get; set; }
+        public SpotifyWebAPI token;
         public int Version { get; set; }
 
         // Add any other properties or methods here.
