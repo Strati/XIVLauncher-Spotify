@@ -6,7 +6,6 @@ using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Models;
 using SpotifyAPI.Web.Enums;
 using System.Diagnostics;
-using Newtonsoft.Json;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -47,7 +46,7 @@ namespace XIVLauncherSpotify
             request = (HttpWebRequest)WebRequest.Create("https://api.spotify.com/v1/artists/6NtwaHZLhTUvERKFbFqu8S");
             request.Accept = "application/json";
             request.ContentType = "application/json";
-            request.Headers.Add("Authorization: " + config.token.TokenType + " " + config.token.AccessToken);
+            request.Headers.Add("Authorization: Bearer " + config.token);
             request.Method = "GET";
             try 
             {
@@ -95,11 +94,11 @@ namespace XIVLauncherSpotify
 
         [Command("/xlsnp")]
         [HelpMessage("Display currently playing song.")]
-        public void GetTrackname(string command, string args)
+        public async Task GetTrackname(string command, string args)
         {
             SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
-            PlaybackContext context = _spotify.GetPlayingTrack();
+            PlaybackContext context = await _spotify.GetPlayingTrackAsync();
             if (context.Item != null)
             {
                 String songname = context.Item.Name;
@@ -118,60 +117,60 @@ namespace XIVLauncherSpotify
 
         [Command("/xlsv")]
         [HelpMessage("Set volume.")]
-        public void SetVolume(string command, string args)
+        public async Task SetVolume(string command, string args)
         {
             SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
             if (!int.TryParse(args, out var volume)) return;
             if (volume > 100 || volume < 0) return;
-            ErrorResponse error = _spotify.SetVolume(volume);
+            ErrorResponse error = await _spotify.SetVolumeAsync(volume);
             chat.Print($"Spotify volume set to {volume}");
         }
 
         [Command("/xlsprevious")]
         [HelpMessage("Go to previous track.")]
-        public void SeekPrevious(string command, string args)
+        public async Task SeekPrevious(string command, string args)
         {
             SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
-            ErrorResponse error = _spotify.SkipPlaybackToPrevious();
+            ErrorResponse error = await _spotify.SkipPlaybackToPreviousAsync();
             chat.Print($"Seeking to previous track.");
         }
 
         [Command("/xlsnext")]
         [HelpMessage("Go to previous track.")]
-        public void SeekNext(string command, string args)
+        public async Task SeekNext(string command, string args)
         {
             SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
-            ErrorResponse error = _spotify.SkipPlaybackToNext();
+            ErrorResponse error = await _spotify.SkipPlaybackToNextAsync();
             chat.Print($"Seeking to next track.");
         }
 
         [Command("/xlsrestart")]
         [HelpMessage("Restart current track.")]
-        public void SeekRestart(string command, string args)
+        public async Task SeekRestart(string command, string args)
         {
             SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
-            ErrorResponse error = _spotify.SeekPlayback(0);
+            ErrorResponse error = await _spotify.SeekPlaybackAsync(0);
             chat.Print($"Restarting current track.");
         }
 
         [Command("/xlstoggleplayback")]
-        [HelpMessage("Restart current track.")]
-        public void TogglePlayback(string command, string args)
+        [HelpMessage("Toggle play/pause.")]
+        public async Task TogglePlayback(string command, string args)
         {
             SpotifyAuth();
             var chat = this.pluginInterface.Framework.Gui.Chat;
-            PlaybackContext context = _spotify.GetPlayback();
+            PlaybackContext context = await _spotify.GetPlaybackAsync();
             if (context.IsPlaying == true)
             {
-                ErrorResponse error = _spotify.PausePlayback();
+                ErrorResponse error = await _spotify.PausePlaybackAsync();
                 chat.Print($"Playback paused.");
             } else
             {
-                ErrorResponse error = _spotify.ResumePlayback(offset: "");
+                ErrorResponse error = await _spotify.ResumePlaybackAsync(offset: "");
                 chat.Print($"Playback resumed.");
             }
         }
